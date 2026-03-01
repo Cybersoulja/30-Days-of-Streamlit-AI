@@ -1,0 +1,3 @@
+venv/
+streamlit_log.txt
+run_app.sh
