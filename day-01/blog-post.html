@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 1: Build a Streaming AI Chatbot | 30 Days of Streamlit: AI Edition</title>
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --border:   #2a2d3a;
+      --accent:   #ff4b4b;
+      --accent2:  #7c6af7;
+      --text:     #e8eaf0;
+      --muted:    #8b8fa8;
+      --code-bg:  #12141e;
+      --tag-bg:   #1f2236;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── Top nav ───────────────────────────────────────────────── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .nav-brand {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-brand span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Hero ──────────────────────────────────────────────────── */
+    .hero {
+      max-width: 760px;
+      margin: 4rem auto 3rem;
+      padding: 0 1.5rem;
+    }
+
+    .day-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .day-badge .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 2rem;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meta-divider { color: var(--border); }
+
+    .tag {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1rem 0.55rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ── Article body ──────────────────────────────────────────── */
+    article {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 1.5rem 6rem;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 2.8rem 0 0.9rem;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 2rem 0 0.6rem;
+      color: var(--text);
+    }
+
+    p { margin-bottom: 1.1rem; }
+
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    ul, ol {
+      padding-left: 1.4rem;
+      margin-bottom: 1.1rem;
+    }
+
+    li { margin-bottom: 0.4rem; }
+
+    /* ── Code ──────────────────────────────────────────────────── */
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.875em;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.15em 0.45em;
+      color: #c9d1d9;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem 1.6rem;
+      overflow-x: auto;
+      margin: 1.4rem 0 1.8rem;
+      font-size: 0.875rem;
+      line-height: 1.65;
+      position: relative;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #c9d1d9;
+    }
+
+    .pre-label {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.9rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    /* syntax colours (manual) */
+    .kw  { color: #ff7b72; }   /* keyword */
+    .fn  { color: #d2a8ff; }   /* function */
+    .st  { color: #a5d6ff; }   /* string */
+    .cm  { color: #8b949e; font-style: italic; } /* comment */
+    .nb  { color: #79c0ff; }   /* builtins / names */
+    .op  { color: #ff7b72; }   /* operators */
+
+    /* ── Callout boxes ─────────────────────────────────────────── */
+    .callout {
+      border-left: 3px solid var(--accent2);
+      background: var(--surface);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.2rem;
+      margin: 1.6rem 0;
+      font-size: 0.95rem;
+    }
+
+    .callout.tip   { border-color: #3fb950; }
+    .callout.warn  { border-color: #e3b341; }
+    .callout.info  { border-color: var(--accent2); }
+
+    .callout-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .callout.tip  .callout-label { color: #3fb950; }
+    .callout.warn .callout-label { color: #e3b341; }
+    .callout.info .callout-label { color: var(--accent2); }
+
+    /* ── Concept cards ─────────────────────────────────────────── */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.6rem 0;
+    }
+
+    .concept-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+    }
+
+    .concept-card h4 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+
+    .concept-card p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ── Step list ─────────────────────────────────────────────── */
+    .steps { list-style: none; padding: 0; counter-reset: steps; }
+
+    .steps li {
+      counter-increment: steps;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.4rem;
+      align-items: flex-start;
+    }
+
+    .steps li::before {
+      content: counter(steps);
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-top: 0.1rem;
+    }
+
+    /* ── Section divider ───────────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* ── Footer ────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+
+    /* ── Progress bar ──────────────────────────────────────────── */
+    .progress-bar-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin: 2rem 0;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 3.33%; /* 1/30 */
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────────────── -->
+<nav>
+  <a class="nav-brand" href="#">30 Days of Streamlit<span>: AI</span></a>
+  <ul class="nav-links">
+    <li><a href="#">Home</a></li>
+    <li><a href="#">All Days</a></li>
+    <li><a href="#">GitHub</a></li>
+  </ul>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="day-badge"><span class="dot"></span>Day 1 of 30</div>
+
+  <h1>Build a <em>Streaming AI Chatbot</em><br>with Streamlit + Claude</h1>
+
+  <p class="subtitle">
+    Multi-turn conversation, real-time token streaming, and session memory —
+    all in under 75 lines of Python.
+  </p>
+
+  <div class="meta">
+    <span>March 6, 2026</span>
+    <span class="meta-divider">/</span>
+    <span>8 min read</span>
+    <span class="meta-divider">/</span>
+    <span class="tag">Streamlit</span>
+    <span class="tag">Claude API</span>
+    <span class="tag">Python</span>
+  </div>
+</header>
+
+<!-- ── Article ───────────────────────────────────────────────────── -->
+<article>
+
+  <!-- Progress -->
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span>Challenge progress</span>
+      <span>Day 1 / 30</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Intro -->
+  <h2>What we're building</h2>
+  <p>
+    Day 1 is about foundations. We're building a fully functional, multi-turn
+    chatbot that streams Claude's responses token by token — so users see output
+    immediately, just like ChatGPT's typing effect — without any JavaScript or
+    WebSocket boilerplate. Just Python.
+  </p>
+  <p>
+    By the end you'll have a working app, and more importantly, you'll deeply
+    understand three primitives that every AI app in this series will rely on:
+    <strong>session state</strong>, <strong>streaming</strong>, and the
+    <strong>messages API format</strong>.
+  </p>
+
+  <!-- Key concepts -->
+  <h2>Key concepts</h2>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h4>Session State</h4>
+      <p>Persists Python variables across Streamlit reruns — essential for chat history.</p>
+    </div>
+    <div class="concept-card">
+      <h4>Streaming</h4>
+      <p>Yields tokens as they're generated. Dramatically better UX than waiting for the full response.</p>
+    </div>
+    <div class="concept-card">
+      <h4>Messages Format</h4>
+      <p>Claude's API uses an alternating user/assistant list. We append to it on every turn.</p>
+    </div>
+    <div class="concept-card">
+      <h4>System Prompt</h4>
+      <p>A top-level instruction that shapes Claude's personality and behaviour for the whole session.</p>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- Setup -->
+  <h2>Setup</h2>
+  <p>Create a new directory and install dependencies:</p>
+
+  <pre><span class="pre-label">bash</span><code><span class="nb">mkdir</span> day-01 <span class="op">&amp;&amp;</span> <span class="nb">cd</span> day-01
+<span class="nb">touch</span> app.py requirements.txt</code></pre>
+
+  <p><strong>requirements.txt</strong></p>
+  <pre><span class="pre-label">txt</span><code>streamlit&gt;=1.32.0
+anthropic&gt;=0.40.0</code></pre>
+
+  <pre><span class="pre-label">bash</span><code>pip install -r requirements.txt</code></pre>
+
+  <p>
+    Make sure your <code>ANTHROPIC_API_KEY</code> environment variable is set.
+    The Anthropic client picks it up automatically — no extra config needed.
+  </p>
+
+  <hr class="divider" />
+
+  <!-- The code, walked through -->
+  <h2>Building it step by step</h2>
+
+  <h3>1. Page config and imports</h3>
+  <pre><span class="pre-label">python</span><code><span class="kw">import</span> streamlit <span class="kw">as</span> st
+<span class="kw">import</span> anthropic
+
+st.<span class="fn">set_page_config</span>(
+    page_title=<span class="st">"Day 1 — AI Chatbot"</span>,
+    page_icon=<span class="st">"🤖"</span>,
+    layout=<span class="st">"centered"</span>,
+)
+
+st.<span class="fn">title</span>(<span class="st">"Day 1: AI Chatbot"</span>)
+st.<span class="fn">caption</span>(<span class="st">"Powered by Claude · 30 Days of Streamlit: AI Edition"</span>)</code></pre>
+
+  <h3>2. Initialize the client and session state</h3>
+
+  <pre><span class="pre-label">python</span><code>client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="kw">if</span> <span class="st">"messages"</span> <span class="kw">not in</span> st.session_state:
+    st.session_state.messages = []</code></pre>
+
+  <div class="callout info">
+    <div class="callout-label">Why the <code>if</code> guard?</div>
+    Streamlit reruns your entire script on every interaction. Without the guard,
+    <code>messages</code> would reset to <code>[]</code> every time the user types — wiping
+    the chat history. The <code>if</code> check means: "only initialise once."
+  </div>
+
+  <h3>3. Sidebar controls</h3>
+
+  <pre><span class="pre-label">python</span><code><span class="kw">with</span> st.<span class="fn">sidebar</span>():
+    system_prompt = st.<span class="fn">text_area</span>(
+        <span class="st">"System prompt"</span>,
+        value=<span class="st">"You are a helpful, friendly AI assistant. Be concise and clear."</span>,
+        height=<span class="nb">120</span>,
+    )
+    <span class="kw">if</span> st.<span class="fn">button</span>(<span class="st">"Clear chat"</span>, use_container_width=<span class="kw">True</span>):
+        st.session_state.messages = []
+        st.<span class="fn">rerun</span>()</code></pre>
+
+  <h3>4. Render chat history</h3>
+
+  <pre><span class="pre-label">python</span><code><span class="kw">for</span> message <span class="kw">in</span> st.session_state.messages:
+    <span class="kw">with</span> st.<span class="fn">chat_message</span>(message[<span class="st">"role"</span>]):
+        st.<span class="fn">markdown</span>(message[<span class="st">"content"</span>])</code></pre>
+
+  <div class="callout tip">
+    <div class="callout-label">Stop and think</div>
+    This loop runs on <em>every</em> rerun. That's intentional — it replays the
+    full conversation so the UI always reflects the current state of
+    <code>st.session_state.messages</code>.
+  </div>
+
+  <h3>5. Handle input and stream the response</h3>
+
+  <pre><span class="pre-label">python</span><code><span class="kw">if</span> prompt := st.<span class="fn">chat_input</span>(<span class="st">"Message Claude..."</span>):
+    <span class="cm"># Add user message to history and display it</span>
+    st.session_state.messages.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: prompt})
+    <span class="kw">with</span> st.<span class="fn">chat_message</span>(<span class="st">"user"</span>):
+        st.<span class="fn">markdown</span>(prompt)
+
+    <span class="cm"># Stream Claude's response</span>
+    <span class="kw">with</span> st.<span class="fn">chat_message</span>(<span class="st">"assistant"</span>):
+        placeholder = st.<span class="fn">empty</span>()
+        full_response = <span class="st">""</span>
+
+        <span class="kw">with</span> client.messages.<span class="fn">stream</span>(
+            model=<span class="st">"claude-opus-4-6"</span>,
+            max_tokens=<span class="nb">1024</span>,
+            system=system_prompt,
+            messages=st.session_state.messages,
+        ) <span class="kw">as</span> stream:
+            <span class="kw">for</span> chunk <span class="kw">in</span> stream.text_stream:
+                full_response += chunk
+                placeholder.<span class="fn">markdown</span>(full_response + <span class="st">"▌"</span>)
+
+        placeholder.<span class="fn">markdown</span>(full_response)
+
+    <span class="cm"># Save assistant turn to history</span>
+    st.session_state.messages.<span class="fn">append</span>({
+        <span class="st">"role"</span>: <span class="st">"assistant"</span>,
+        <span class="st">"content"</span>: full_response,
+    })</code></pre>
+
+  <div class="callout warn">
+    <div class="callout-label">Two things worth noting</div>
+    <ul style="margin: 0.5rem 0 0; padding-left: 1.2rem;">
+      <li>
+        <code>st.empty()</code> creates a single slot in the UI that we overwrite on
+        every chunk — this is how the "typing" animation works without flickering.
+      </li>
+      <li>
+        The <code>▌</code> cursor character is appended <em>during</em> streaming and
+        removed once streaming is complete, giving a natural terminal feel.
+      </li>
+    </ul>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- Run it -->
+  <h2>Run the app</h2>
+
+  <pre><span class="pre-label">bash</span><code>streamlit run app.py</code></pre>
+
+  <p>
+    Open <code>http://localhost:8501</code> in your browser. Type a message and watch
+    Claude stream back a response in real time.
+  </p>
+
+  <!-- Test multi-turn -->
+  <h2>Testing multi-turn memory</h2>
+  <p>
+    To verify that conversation context is working correctly, try this sequence:
+  </p>
+  <ol>
+    <li>Send: <em>"My name is Alex."</em></li>
+    <li>Send: <em>"What's my name?"</em></li>
+    <li>Send: <em>"What was the very first thing I told you?"</em></li>
+  </ol>
+  <p>
+    Claude should answer all three correctly. This works because
+    <code>st.session_state.messages</code> is passed in full on every API call —
+    Claude sees the entire conversation history each time.
+  </p>
+
+  <hr class="divider" />
+
+  <!-- What we learned -->
+  <h2>What we learned</h2>
+  <ul>
+    <li><strong>Session state</strong> is the backbone of any stateful Streamlit app.</li>
+    <li><strong>Streaming</strong> with <code>client.messages.stream()</code> and <code>st.empty()</code> gives a native chat feel with minimal code.</li>
+    <li>The <strong>messages list format</strong> (alternating user/assistant dicts) is the contract every Claude app must follow.</li>
+    <li>A <strong>system prompt</strong> is the cleanest way to control tone and behaviour without touching the conversation history.</li>
+  </ul>
+
+  <hr class="divider" />
+
+  <!-- Up next -->
+  <h2>Up next: Day 2</h2>
+  <p>
+    We'll add a model selector, token counter, and cost estimator to the sidebar —
+    making the chatbot feel like a real developer tool.
+  </p>
+
+</article>
+
+<!-- ── Footer ─────────────────────────────────────────────────────── -->
+<footer>
+  <p>
+    30 Days of Streamlit: AI Edition &middot;
+    <a href="https://github.com/Cybersoulja/30-Days-of-Streamlit-AI" target="_blank">GitHub</a>
+    &middot; Built with Streamlit and the Claude API
+  </p>
+</footer>
+
+</body>
+</html>
