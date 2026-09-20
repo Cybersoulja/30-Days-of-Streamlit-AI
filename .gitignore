@@ -28,3 +28,8 @@ env/
 venv/
 ENV/
 .pythonlibs/
+venv/
+streamlit_log.txt
+run_app.sh
+venv/
+*.log
